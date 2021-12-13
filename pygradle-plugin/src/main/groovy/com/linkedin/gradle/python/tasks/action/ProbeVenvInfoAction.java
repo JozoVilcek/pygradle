@@ -22,16 +22,15 @@ import com.eclipsesource.json.JsonValue;
 import com.linkedin.gradle.python.extension.PythonDetails;
 import com.linkedin.gradle.python.wheel.AbiDetails;
 import com.linkedin.gradle.python.wheel.EditablePythonAbiContainer;
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 class ProbeVenvInfoAction {
 
@@ -55,14 +54,11 @@ class ProbeVenvInfoAction {
         InputStream wheelApiResource = ProbeVenvInfoAction.class.getClassLoader()
             .getResourceAsStream("templates/wheel-api.py");
 
-        byte[] buffer = new byte[wheelApiResource.available()];
-        wheelApiResource.read(buffer);
-
         File probeDir = new File(project.getBuildDir(), "prob-venv");
         probeDir.mkdirs();
 
-        OutputStream outStream = new FileOutputStream(getPythonFileForSupportedWheels(probeDir));
-        outStream.write(buffer);
+        File targetFile = getPythonFileForSupportedWheels(probeDir);
+        FileUtils.copyInputStreamToFile(wheelApiResource, targetFile);
 
         File supportedAbiFormatsFile = getSupportedAbiFormatsFile(probeDir, pythonDetails);
         project.exec(execSpec -> {
